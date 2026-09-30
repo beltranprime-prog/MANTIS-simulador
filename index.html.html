@@ -1,0 +1,723 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mantis — Simulador de su Nuevo Sitio</title>
+<style>
+  :root{
+    --bg:#0d0e14;
+    --bg-warm:#15171f;
+    --panel:#1b1e29;
+    --gold:#d4af37;
+    --gold-light:#f4dd8c;
+    --gold-dark:#96771c;
+    --text:#eee9db;
+    --muted:#8a8672;
+    --border:rgba(212,175,55,0.25);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:radial-gradient(ellipse at top, var(--bg-warm) 0%, var(--bg) 65%);
+    font-family:'Georgia','Times New Roman',serif;
+    color:var(--text);
+    min-height:100vh;
+    padding:28px 16px 60px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  .brand-header{ text-align:center; margin-bottom:18px; }
+  .logo-word{ font-size:18px; letter-spacing:6px; color:var(--gold-light); margin-top:10px; }
+  .logo-tagline{ font-size:9px; letter-spacing:3px; color:var(--muted); text-transform:uppercase; margin-top:3px; }
+
+  .intro{ max-width:460px; text-align:center; margin-bottom:22px; }
+  .intro h1{ font-size:1.4rem; font-weight:400; line-height:1.35; }
+  .intro p{ font-family:-apple-system,'Helvetica Neue',Arial,sans-serif; font-size:0.85rem; color:var(--muted); margin-top:8px; line-height:1.5; }
+
+  .card{
+    width:100%; max-width:460px;
+    background:var(--panel);
+    border-radius:14px;
+    padding:24px 22px;
+    border:1px solid var(--border);
+  }
+
+  .field{ margin-bottom:20px; font-family:-apple-system,'Helvetica Neue',Arial,sans-serif; }
+  .field label{ display:block; font-size:0.9rem; color:var(--text); margin-bottom:10px; font-family:'Georgia',serif; }
+
+  input[type="text"]{
+    width:100%;
+    padding:13px 14px;
+    background:var(--bg);
+    border:1px solid rgba(212,175,55,0.3);
+    border-radius:8px;
+    font-size:15px;
+    font-family:'Georgia',serif;
+    color:var(--text);
+  }
+  input[type="text"]::placeholder{ color:#55523f; }
+  input[type="text"]:focus{ outline:none; border-color:var(--gold); }
+
+  .search-input{
+    font-family:-apple-system,sans-serif !important;
+    font-size:13px !important;
+    padding:10px 14px !important;
+    margin-bottom:10px;
+  }
+
+  .choices-scroll{
+    max-height:230px;
+    overflow-y:auto;
+    padding-right:4px;
+  }
+  .choices-scroll::-webkit-scrollbar{ width:5px; }
+  .choices-scroll::-webkit-scrollbar-thumb{ background:rgba(212,175,55,0.35); border-radius:3px; }
+  .choices-scroll::-webkit-scrollbar-track{ background:transparent; }
+
+  .choices{ display:flex; flex-wrap:wrap; gap:7px; }
+  .choice-btn{
+    flex:0 0 auto;
+    padding:10px 13px;
+    border-radius:8px;
+    border:1px solid rgba(212,175,55,0.25);
+    background:transparent;
+    color:#dcd8c8;
+    font-size:0.78rem;
+    cursor:pointer;
+    text-align:center;
+    font-family:-apple-system,sans-serif;
+    transition:background 0.15s, border-color 0.15s, color 0.15s;
+    white-space:nowrap;
+  }
+  .choice-btn:hover{ border-color:var(--gold); }
+  .choice-btn.active{
+    background:linear-gradient(135deg, var(--gold-dark), var(--gold));
+    border-color:var(--gold);
+    color:#171a10;
+    font-weight:600;
+  }
+  .choice-btn.hidden-filter{ display:none; }
+  .no-results{
+    font-family:-apple-system,sans-serif; font-size:0.78rem; color:var(--muted);
+    text-align:center; padding:10px; display:none;
+  }
+  .no-results.show{ display:block; }
+
+  .btn-primary{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:8px;
+    background:linear-gradient(135deg, var(--gold-light), var(--gold-dark));
+    color:#171a10;
+    font-weight:700;
+    font-size:15px;
+    font-family:-apple-system,sans-serif;
+    letter-spacing:0.3px;
+    cursor:pointer;
+    transition:all 0.2s;
+    margin-top:18px;
+  }
+  .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 10px 20px rgba(212,175,55,0.25); }
+
+  .btn-ghost{
+    background:transparent; border:1px solid rgba(212,175,55,0.3); color:var(--muted);
+    padding:10px 18px; border-radius:8px; font-family:-apple-system,sans-serif; font-size:0.82rem; cursor:pointer;
+  }
+  .btn-ghost:hover{ border-color:var(--gold); color:var(--gold-light); }
+
+  /* LOADING */
+  .loading{ display:none; text-align:center; padding:30px 10px; font-family:-apple-system,sans-serif; }
+  .loading.show{ display:block; }
+  .loading-bar-track{ width:100%; max-width:340px; margin:0 auto 16px; height:5px; background:rgba(212,175,55,0.15); border-radius:3px; overflow:hidden; }
+  .loading-bar-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--gold-dark), var(--gold-light)); transition:width 0.35s linear; }
+  .loading-step{ color:var(--gold-light); font-size:0.85rem; letter-spacing:0.5px; }
+
+  /* RESULT */
+  .result-wrap{ display:none; width:100%; max-width:480px; margin-top:10px; }
+  .result-wrap.show{ display:block; animation:fadeUp 0.5s ease-out; }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(14px) scale(0.98);} to{opacity:1; transform:translateY(0) scale(1);} }
+
+  .view-toggle{
+    display:flex; justify-content:center; gap:8px; margin-bottom:16px; font-family:-apple-system,sans-serif;
+  }
+  .view-btn{
+    padding:8px 18px; border-radius:20px; border:1px solid rgba(212,175,55,0.3);
+    background:transparent; color:var(--muted); font-size:0.78rem; cursor:pointer; transition:all 0.2s;
+  }
+  .view-btn.active{ background:var(--gold); color:#171a10; border-color:var(--gold); font-weight:600; }
+
+  .browser-frame{
+    position:relative;
+    margin:0 auto;
+    background:#e9e6dc;
+    border-radius:10px;
+    box-shadow:0 25px 60px rgba(0,0,0,0.55);
+    transition:max-width 0.4s ease;
+    width:100%;
+    max-width:480px;
+  }
+  .browser-frame.mobile{ max-width:230px; }
+
+  .browser-bar{
+    background:#d7d3c4;
+    padding:9px 12px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    border-radius:10px 10px 0 0;
+  }
+  .dots{ display:flex; gap:5px; flex-shrink:0; }
+  .dots span{ width:8px; height:8px; border-radius:50%; display:block; }
+  .dots .r{ background:#e0645a; } .dots .y{ background:#e0b84f; } .dots .g{ background:#5cb86a; }
+  .url-pill{
+    flex:1; background:#f4f2ea; border-radius:12px; padding:5px 10px;
+    font-family:-apple-system,sans-serif; font-size:0.65rem; color:#5a5748;
+    display:flex; align-items:center; gap:5px; overflow:hidden; white-space:nowrap;
+  }
+  .lock{ color:#5a8c5a; font-size:0.6rem; flex-shrink:0; }
+
+  .site-scroll{
+    max-height:560px;
+    overflow-y:auto;
+    border-radius:0 0 10px 10px;
+    scroll-behavior:smooth;
+  }
+  .site-scroll::-webkit-scrollbar{ width:5px; }
+  .site-scroll::-webkit-scrollbar-thumb{ background:rgba(0,0,0,0.15); border-radius:3px; }
+
+  .site-nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:13px 18px; background:#fff; font-family:-apple-system,sans-serif;
+    box-shadow:0 1px 6px rgba(0,0,0,0.08); position:relative; z-index:5;
+  }
+  .site-brand{ display:flex; align-items:center; gap:8px; font-family:'Georgia',serif; font-weight:bold; color:#1a1a1a; font-size:0.92rem; }
+  .site-brand .brand-dot{
+    width:26px; height:26px; border-radius:6px; display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:0.75rem; font-weight:bold; flex-shrink:0;
+  }
+  .site-nav-links{ display:flex; align-items:center; gap:15px; font-size:0.7rem; color:#555; }
+  .browser-frame.mobile .site-nav-links{ display:none; }
+  .nav-cta{
+    background:var(--gold); color:#171a10; font-weight:700; padding:6px 13px; border-radius:5px; font-size:0.68rem;
+  }
+  .hamburger{ display:none; flex-direction:column; gap:3px; }
+  .browser-frame.mobile .hamburger{ display:flex; }
+  .hamburger span{ width:16px; height:2px; background:#333; display:block; }
+
+  .site-hero{
+    padding:44px 24px 40px;
+    text-align:center;
+    color:#fff;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero-blob{
+    position:absolute; border-radius:50%; filter:blur(30px); opacity:0.35; pointer-events:none;
+  }
+  .blob1{ width:140px; height:140px; top:-40px; left:-30px; background:var(--gold-light); }
+  .blob2{ width:180px; height:180px; bottom:-60px; right:-40px; background:#fff; opacity:0.12; }
+  .hero-pattern{
+    position:absolute; inset:0; opacity:0.06; pointer-events:none;
+    background-image:repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 1px, transparent 14px);
+  }
+  .hero-inner{ position:relative; z-index:2; }
+  .hero-icon-badge{
+    width:64px; height:64px; margin:0 auto 16px; border-radius:50%;
+    background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .hero-icon{ width:32px; height:32px; }
+  .site-hero h2{
+    font-family:'Georgia',serif; font-size:1.55rem; margin-bottom:10px; line-height:1.3;
+    text-shadow:0 2px 10px rgba(0,0,0,0.35); position:relative; overflow:hidden; display:inline-block;
+  }
+  .shimmer::after{
+    content:''; position:absolute; top:0; left:-60%; width:40%; height:100%;
+    background:linear-gradient(100deg, transparent, rgba(255,255,255,0.55), transparent);
+    animation:shimmerSweep 1.4s ease-out 0.3s 1;
+  }
+  @keyframes shimmerSweep{ from{ left:-60%; } to{ left:130%; } }
+  .browser-frame.mobile .site-hero h2{ font-size:1.15rem; }
+  .site-hero p{ font-family:-apple-system,sans-serif; font-size:0.85rem; opacity:0.92; margin-bottom:22px; line-height:1.5; }
+  .browser-frame.mobile .site-hero p{ font-size:0.75rem; }
+  .hero-buttons{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  .hero-cta{
+    display:inline-block; background:var(--gold); color:#171a10; font-weight:700;
+    padding:11px 24px; border-radius:6px; font-family:-apple-system,sans-serif; font-size:0.8rem;
+  }
+  .hero-cta-secondary{
+    display:inline-block; background:transparent; color:#fff; font-weight:600;
+    padding:10px 20px; border-radius:6px; font-family:-apple-system,sans-serif; font-size:0.8rem;
+    border:1px solid rgba(255,255,255,0.4);
+  }
+
+  .site-section{ background:#fff; padding:28px 20px; }
+  .site-section.alt{ background:#faf8f2; }
+  .section-heading{
+    text-align:center; font-family:'Georgia',serif; font-size:1rem; color:#1a1a1a; margin-bottom:18px;
+  }
+
+  .gallery-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .browser-frame.mobile .gallery-grid{ grid-template-columns:repeat(2,1fr); }
+  .gallery-tile{
+    aspect-ratio:1; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    color:#fff; position:relative; overflow:hidden;
+  }
+  .gallery-tile svg{ width:20px; height:20px; margin-bottom:6px; opacity:0.9; }
+  .gallery-tile span{ font-family:-apple-system,sans-serif; font-size:0.55rem; text-align:center; padding:0 4px; }
+
+  .services-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  .browser-frame.mobile .services-grid{ grid-template-columns:1fr; }
+  .service-card{ text-align:center; font-family:-apple-system,sans-serif; }
+  .service-icon{
+    width:36px; height:36px; margin:0 auto 10px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-size:1rem;
+  }
+  .service-card h4{ font-size:0.78rem; color:#1a1a1a; margin-bottom:5px; font-family:'Georgia',serif; }
+  .service-card p{ font-size:0.68rem; color:#777; line-height:1.4; }
+
+  .reviews-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .browser-frame.mobile .reviews-grid{ grid-template-columns:1fr; }
+  .review-card{
+    background:#fff; border:1px dashed #ddd7c4; border-radius:8px; padding:14px 12px; text-align:center;
+    font-family:-apple-system,sans-serif;
+  }
+  .review-stars{ color:#ddd; font-size:0.85rem; margin-bottom:6px; letter-spacing:2px; }
+  .review-card p{ font-size:0.65rem; color:#999; font-style:italic; }
+
+  .cta-banner{
+    padding:28px 20px; text-align:center; color:#fff; position:relative; overflow:hidden;
+  }
+  .cta-banner h3{ font-family:'Georgia',serif; font-size:1.05rem; margin-bottom:14px; }
+  .cta-banner .hero-cta{ display:inline-flex; align-items:center; gap:6px; }
+
+  .site-trust{
+    background:#12141c; padding:16px 20px; display:flex; justify-content:space-around;
+    flex-wrap:wrap; gap:10px; font-family:-apple-system,sans-serif;
+  }
+  .trust-item{ display:flex; align-items:center; gap:6px; font-size:0.62rem; color:var(--gold-light); }
+  .browser-frame.mobile .site-trust{ flex-direction:column; align-items:center; }
+
+  .site-footer{
+    background:#0d0e14; color:#8a8672; padding:20px 20px; text-align:center;
+    font-family:-apple-system,sans-serif; font-size:0.62rem; line-height:1.9;
+  }
+  .footer-social{ display:flex; justify-content:center; gap:10px; margin:10px 0; }
+  .footer-social span{
+    width:22px; height:22px; border-radius:50%; border:1px solid rgba(212,175,55,0.4);
+    display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:var(--gold-light);
+  }
+  .site-footer .footer-brand{ color:var(--gold-light); font-weight:600; }
+
+  .wa-float{
+    position:absolute; bottom:14px; right:14px; width:40px; height:40px; border-radius:50%;
+    background:#25d366; display:flex; align-items:center; justify-content:center; z-index:10;
+    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+  }
+  .wa-float::before{
+    content:''; position:absolute; inset:0; border-radius:50%; background:#25d366;
+    animation:waPulse 2s ease-out infinite;
+  }
+  @keyframes waPulse{ 0%{ transform:scale(1); opacity:0.6; } 100%{ transform:scale(1.8); opacity:0; } }
+
+  .closing-line{ text-align:center; margin-top:26px; font-size:1.25rem; color:var(--gold-light); line-height:1.4; padding:0 10px; }
+  .closing-sub{ text-align:center; margin-top:8px; font-family:-apple-system,sans-serif; font-size:0.8rem; color:var(--muted); }
+  .result-actions{ display:flex; justify-content:center; margin-top:22px; }
+
+  .fade-section{ opacity:0; transform:translateY(6px); animation:sectionIn 0.5s ease-out forwards; }
+  @keyframes sectionIn{ to{ opacity:1; transform:translateY(0); } }
+</style>
+</head>
+<body>
+
+  <div class="brand-header">
+    <img src="data:image/png;base64,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" alt="Mantis" width="80" height="72" style="display:block;margin:0 auto;">
+    <div class="logo-word">MANTIS</div>
+    <div class="logo-tagline">Digital Marketing Agency</div>
+  </div>
+
+  <div class="intro">
+    <h1>Simulador de su Nuevo Sitio</h1>
+    <p>Escriba el nombre de su negocio y véalo tomar forma en segundos.</p>
+  </div>
+
+  <div class="card" id="inputCard">
+    <div class="field">
+      <label>Nombre de su negocio</label>
+      <input type="text" id="nombreNegocio" placeholder="Ej. Restaurante El Fogón" maxlength="40">
+    </div>
+
+    <div class="field">
+      <label>Giro de su negocio</label>
+      <input type="text" id="giroSearch" class="search-input" placeholder="Buscar su giro...">
+      <div class="choices-scroll">
+        <div class="choices" id="giroChoices"></div>
+        <div class="no-results" id="noResults">No se encontró ese giro — seleccione "Otro"</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="generarBtn">Generar mi sitio</button>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="loading-bar-track"><div class="loading-bar-fill" id="loadingBar"></div></div>
+    <div class="loading-step" id="loadingStep">Analizando su negocio...</div>
+  </div>
+
+  <div class="result-wrap" id="resultWrap">
+
+    <div class="view-toggle">
+      <button class="view-btn active" id="btnDesktop">Vista escritorio</button>
+      <button class="view-btn" id="btnMobile">Vista móvil</button>
+    </div>
+
+    <div class="browser-frame" id="browserFrame">
+      <div class="browser-bar">
+        <div class="dots"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="url-pill"><span class="lock">&#128274;</span><span id="urlText">www.sunegocio.com.mx</span></div>
+      </div>
+
+      <div class="site-scroll" id="siteScroll">
+        <div class="site-nav">
+          <div class="site-brand">
+            <span class="brand-dot" id="brandDot">S</span>
+            <span id="siteBrandName">Su Negocio</span>
+          </div>
+          <div class="site-nav-links">
+            <span>Inicio</span><span id="navExtra">Servicios</span><span>Nosotros</span><span class="nav-cta" id="navCta">Contactar</span>
+          </div>
+          <div class="hamburger"><span></span><span></span><span></span></div>
+        </div>
+
+        <div class="site-hero" id="siteHero">
+          <div class="hero-blob blob1"></div>
+          <div class="hero-blob blob2"></div>
+          <div class="hero-pattern"></div>
+          <div class="hero-inner">
+            <div class="hero-icon-badge"><svg class="hero-icon" id="heroIcon" viewBox="0 0 48 48" fill="none"></svg></div>
+            <h2 id="heroTitle" class="shimmer">Su Negocio</h2>
+            <p id="heroTagline">Presencia digital profesional para su negocio</p>
+            <div class="hero-buttons">
+              <span class="hero-cta" id="heroCta">Contactar ahora</span>
+              <span class="hero-cta-secondary" id="heroCtaSecondary">Ver servicios</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="site-section">
+          <div class="section-heading" id="galleryHeading">Conozca más</div>
+          <div class="gallery-grid" id="galleryGrid"></div>
+        </div>
+
+        <div class="site-section alt">
+          <div class="section-heading">Lo que incluye su sitio</div>
+          <div class="services-grid" id="servicesGrid"></div>
+        </div>
+
+        <div class="site-section">
+          <div class="section-heading">Lo que dirán sus clientes</div>
+          <div class="reviews-grid">
+            <div class="review-card"><div class="review-stars">&#9734;&#9734;&#9734;&#9734;&#9734;</div><p>Sus reseñas aparecerán aquí</p></div>
+            <div class="review-card"><div class="review-stars">&#9734;&#9734;&#9734;&#9734;&#9734;</div><p>Sus reseñas aparecerán aquí</p></div>
+            <div class="review-card"><div class="review-stars">&#9734;&#9734;&#9734;&#9734;&#9734;</div><p>Sus reseñas aparecerán aquí</p></div>
+          </div>
+        </div>
+
+        <div class="cta-banner" id="ctaBanner">
+          <h3>¿Listo para conocernos?</h3>
+          <span class="hero-cta">&#128172; Contactar por WhatsApp</span>
+        </div>
+
+        <div class="site-trust">
+          <div class="trust-item">&#9889; Entrega en 7 días</div>
+          <div class="trust-item">&#128274; Mantenimiento incluido</div>
+          <div class="trust-item">&#128205; Hecho en Morelia</div>
+        </div>
+
+        <div class="site-footer">
+          &#128205; Morelia, Michoacán &nbsp;·&nbsp; &#128337; Lun–Sáb, horario a definir
+          <div class="footer-social"><span>f</span><span>ig</span><span>@</span></div>
+          © 2026 <span id="footerName">Su Negocio</span><br>
+          Sitio creado por <span class="footer-brand">Mantis Digital Marketing Agency</span>
+        </div>
+      </div>
+
+      <div class="wa-float">&#128172;</div>
+    </div>
+
+    <div class="closing-line">Este es su sitio.<br>En menos de una semana, esto es realidad.</div>
+    <div class="closing-sub">Así de rápido puede tener presencia digital profesional.</div>
+
+    <div class="result-actions">
+      <button class="btn-ghost" id="editarBtn">← Editar datos</button>
+    </div>
+  </div>
+
+<script>
+  const NICHES = [
+    { key:'restaurante', label:'Restaurante / Café', heroFrom:'#3b1410', heroTo:'#8a3018',
+      tagline:'Sabores que enamoran, ahora al alcance de un clic', cta:'Reservar una mesa', navExtra:'Menú',
+      services:[{t:'Menú digital actualizado',d:'Sus platillos, con fotos y precios siempre al día'},{t:'Reservaciones en línea',d:'Sus clientes reservan sin llamar'},{t:'Ubicación y horarios',d:'Que lo encuentren fácil, a la hora que sea'}],
+      icon:'fork', gallery:['Platillo estrella','Ambiente','Bebidas','Postres'] },
+
+    { key:'clinica', label:'Clínica / Consultorio', heroFrom:'#0d2b2e', heroTo:'#187a72',
+      tagline:'Cuidando su salud, con la confianza que se nota desde el primer clic', cta:'Agendar una cita', navExtra:'Servicios',
+      services:[{t:'Agenda de citas en línea',d:'Sus pacientes agendan sin llamar'},{t:'Especialidades claras',d:'Que sepan en qué los puede ayudar'},{t:'Contacto directo',d:'Ubicación y WhatsApp a un clic'}],
+      icon:'cross', gallery:['Consultorio','Equipo médico','Especialidades','Instalaciones'] },
+
+    { key:'dentista', label:'Dentista', heroFrom:'#0d2430', heroTo:'#1a6f8c',
+      tagline:'Una sonrisa sana comienza con una buena primera impresión', cta:'Agendar cita', navExtra:'Tratamientos',
+      services:[{t:'Agenda en línea',d:'Sin llamadas ni esperas'},{t:'Tratamientos claros',d:'Explicados antes de decidir'},{t:'Contacto por WhatsApp',d:'Respuestas rápidas y directas'}],
+      icon:'tooth', gallery:['Consultorio','Tratamientos','Equipo','Higiene y cuidado'] },
+
+    { key:'veterinaria', label:'Veterinaria', heroFrom:'#12261a', heroTo:'#2f7a4a',
+      tagline:'El mejor cuidado para quienes más quiere', cta:'Agendar cita', navExtra:'Servicios',
+      services:[{t:'Agenda en línea',d:'Citas y vacunación sin llamar'},{t:'Servicios claros',d:'Todo lo que ofrece, bien explicado'},{t:'Contacto directo',d:'Para emergencias, a un clic'}],
+      icon:'paw', gallery:['Consultorio','Servicios','Equipo','Cuidado animal'] },
+
+    { key:'taller', label:'Taller / Mecánica', heroFrom:'#1c1f26', heroTo:'#4a5561',
+      tagline:'Servicio rápido y de confianza para su vehículo', cta:'Cotizar servicio', navExtra:'Servicios',
+      services:[{t:'Cotización en línea',d:'Sus clientes piden precio sin ir al taller'},{t:'Catálogo de servicios',d:'Todo lo que ofrece, bien explicado'},{t:'Contacto por WhatsApp',d:'Respuestas rápidas, más confianza'}],
+      icon:'wrench', gallery:['Diagnóstico','Refacciones','Servicio express','Instalaciones'] },
+
+    { key:'despacho', label:'Despacho / Abogados', heroFrom:'#10131c', heroTo:'#26365c',
+      tagline:'Asesoría legal clara, cercana y profesional', cta:'Agendar consulta', navExtra:'Áreas de práctica',
+      services:[{t:'Áreas de práctica claras',d:'Que sepan en qué los puede ayudar'},{t:'Consultas en línea',d:'Agenden sin llamadas ni esperas'},{t:'Presencia profesional',d:'La primera impresión que genera confianza'}],
+      icon:'scale', gallery:['Oficinas','Equipo legal','Áreas de práctica','Atención al cliente'] },
+
+    { key:'contador', label:'Contador / Contabilidad', heroFrom:'#14202e', heroTo:'#2d4a6b',
+      tagline:'Su contabilidad en orden, su negocio en calma', cta:'Agendar asesoría', navExtra:'Servicios',
+      services:[{t:'Servicios contables claros',d:'Qué ofrece, sin tecnicismos'},{t:'Asesoría en línea',d:'Personalizada, sin ir a la oficina'},{t:'Contacto confidencial',d:'Directo y seguro'}],
+      icon:'chart', gallery:['Servicios','Declaraciones','Nómina','Asesoría fiscal'] },
+
+    { key:'salon', label:'Salón / Barbería', heroFrom:'#2b1020', heroTo:'#7a2a52',
+      tagline:'Su mejor versión comienza aquí', cta:'Reservar cita', navExtra:'Servicios',
+      services:[{t:'Reservación en línea',d:'Sin necesidad de llamar'},{t:'Catálogo y precios',d:'Todo claro desde antes de llegar'},{t:'Galería de trabajos',d:'Que vean su calidad antes de decidir'}],
+      icon:'scissors', gallery:['Cortes','Coloración','Tratamientos','Instalaciones'] },
+
+    { key:'spa', label:'Spa / Estética', heroFrom:'#1f1430', heroTo:'#5a3a8c',
+      tagline:'Un momento para usted, ahora a un clic', cta:'Reservar cita', navExtra:'Tratamientos',
+      services:[{t:'Reservación en línea',d:'Sin necesidad de llamar'},{t:'Catálogo de tratamientos',d:'Claro desde antes de llegar'},{t:'Ambiente que se nota',d:'Diseñado para relajarse desde el sitio'}],
+      icon:'leaf', gallery:['Tratamientos','Instalaciones','Productos','Ambiente'] },
+
+    { key:'gimnasio', label:'Gimnasio / Fitness', heroFrom:'#1a1414', heroTo:'#7a3a1a',
+      tagline:'Su mejor versión empieza hoy', cta:'Agendar clase', navExtra:'Clases',
+      services:[{t:'Horarios en línea',d:'Clases y disponibilidad al día'},{t:'Planes claros',d:'Membresías sin letras chiquitas'},{t:'Contacto directo',d:'Para inscribirse sin ir primero'}],
+      icon:'dumbbell', gallery:['Instalaciones','Clases','Equipo','Entrenadores'] },
+
+    { key:'tienda', label:'Tienda / Boutique', heroFrom:'#1a1030', heroTo:'#4c2b8a',
+      tagline:'Todo lo que busca, a un clic de distancia', cta:'Ver catálogo', navExtra:'Catálogo',
+      services:[{t:'Catálogo en línea',d:'Sus productos visibles a cualquier hora'},{t:'Pedidos por WhatsApp',d:'Comprar nunca fue tan fácil'},{t:'Ubicación y horarios',d:'Que lo encuentren sin problema'}],
+      icon:'bag', gallery:['Nueva colección','Destacados','Ofertas','Catálogo completo'] },
+
+    { key:'ferreteria', label:'Ferretería', heroFrom:'#22201a', heroTo:'#6b5a2a',
+      tagline:'Todo lo que necesita, a la mano', cta:'Ver catálogo', navExtra:'Catálogo',
+      services:[{t:'Catálogo en línea',d:'Productos y precios siempre al día'},{t:'Pedidos por WhatsApp',d:'Aparte su material sin ir primero'},{t:'Ubicación y horarios',d:'Que lo encuentren fácil'}],
+      icon:'wrench', gallery:['Herramientas','Materiales','Ofertas','Novedades'] },
+
+    { key:'inmobiliaria', label:'Inmobiliaria', heroFrom:'#14181c', heroTo:'#3a4a52',
+      tagline:'Encuentre el lugar ideal, sin complicaciones', cta:'Ver propiedades', navExtra:'Propiedades',
+      services:[{t:'Catálogo de propiedades',d:'Visibles en línea, siempre actualizado'},{t:'Contacto con el asesor',d:'Directo, sin intermediarios'},{t:'Información clara',d:'De cada opción disponible'}],
+      icon:'house', gallery:['Propiedades','Zonas','Asesoría','Financiamiento'] },
+
+    { key:'fotografo', label:'Fotógrafo', heroFrom:'#1a1a1a', heroTo:'#4a4a4a',
+      tagline:'Capturando momentos que se quedan para siempre', cta:'Agendar sesión', navExtra:'Portafolio',
+      services:[{t:'Agenda en línea',d:'Sesiones sin ida y vuelta de mensajes'},{t:'Portafolio actualizado',d:'Su trabajo, siempre visible'},{t:'Contacto por WhatsApp',d:'Directo y rápido'}],
+      icon:'camera', gallery:['Retratos','Eventos','Bodas','Producto'] },
+
+    { key:'floreria', label:'Florería', heroFrom:'#2b1030', heroTo:'#8a2a5a',
+      tagline:'Flores que dicen lo que las palabras no alcanzan', cta:'Ver catálogo', navExtra:'Catálogo',
+      services:[{t:'Catálogo de arreglos',d:'Visibles en línea, a cualquier hora'},{t:'Pedidos por WhatsApp',d:'Entregas coordinadas fácil'},{t:'Ocasiones especiales',d:'Cubiertas todo el año'}],
+      icon:'flower', gallery:['Arreglos','Ramos','Ocasiones especiales','Entregas'] },
+
+    { key:'panaderia', label:'Panadería / Repostería', heroFrom:'#2e1a0d', heroTo:'#8a5a1a',
+      tagline:'El aroma de lo recién horneado, ahora en línea', cta:'Ver catálogo', navExtra:'Menú',
+      services:[{t:'Menú actualizado',d:'Sus productos del día, siempre visibles'},{t:'Pedidos por WhatsApp',d:'Encargue con anticipación'},{t:'Ubicación y horarios',d:'Que lo encuentren fácil'}],
+      icon:'bread', gallery:['Pan del día','Pasteles','Especialidades','Pedidos especiales'] },
+
+    { key:'joyeria', label:'Joyería', heroFrom:'#1c1710', heroTo:'#6b551a',
+      tagline:'Piezas que acompañan sus momentos más importantes', cta:'Ver catálogo', navExtra:'Colecciones',
+      services:[{t:'Catálogo en línea',d:'Sus piezas, siempre visibles'},{t:'Atención personalizada',d:'Por WhatsApp, sin presión'},{t:'Piezas a la medida',d:'Explicadas con claridad'}],
+      icon:'diamond', gallery:['Colecciones','Piezas destacadas','A la medida','Novedades'] },
+
+    { key:'escuela', label:'Escuela / Academia', heroFrom:'#101a2e', heroTo:'#2a4a7a',
+      tagline:'Formando el futuro, un alumno a la vez', cta:'Inscribirse', navExtra:'Programas',
+      services:[{t:'Programas claros',d:'Información completa, sin ambigüedad'},{t:'Inscripciones en línea',d:'Sin ir a preguntar primero'},{t:'Contacto directo',d:'Con la institución, sin intermediarios'}],
+      icon:'cap', gallery:['Instalaciones','Programas','Actividades','Comunidad'] },
+
+    { key:'otro', label:'Otro', heroFrom:'#14161c', heroTo:'#33384a',
+      tagline:'Presencia digital profesional para su negocio', cta:'Contactar ahora', navExtra:'Servicios',
+      services:[{t:'Presencia 24/7',d:'Su negocio visible a cualquier hora'},{t:'Contacto directo',d:'Que le escriban con un clic'},{t:'Información clara',d:'Genera confianza desde el primer segundo'}],
+      icon:'diamond', gallery:['Servicios','Nosotros','Novedades','Contacto'] }
+  ];
+
+  const ICON_PATHS = {
+    fork:'<path d="M14 4v14M14 4a3 3 0 013 3v6a3 3 0 01-3 3M20 4v10c2 1 4-1 4-4V4M24 4v18" stroke="url(#heroGrad)" stroke-width="1.8" fill="none" stroke-linecap="round"/>',
+    cross:'<rect x="18" y="6" width="10" height="34" rx="2" fill="url(#heroGrad)"/><rect x="6" y="18" width="34" height="10" rx="2" fill="url(#heroGrad)"/>',
+    tooth:'<path d="M24 6c-6 0-10 5-10 12 0 9 4 22 7 22 2 0 2-6 3-6s1 6 3 6c3 0 7-13 7-22 0-7-4-12-10-12z" fill="url(#heroGrad)"/>',
+    paw:'<circle cx="14" cy="14" r="4.5" fill="url(#heroGrad)"/><circle cx="24" cy="9" r="4.5" fill="url(#heroGrad)"/><circle cx="34" cy="14" r="4.5" fill="url(#heroGrad)"/><ellipse cx="24" cy="30" rx="11" ry="9" fill="url(#heroGrad)"/>',
+    wrench:'<circle cx="24" cy="24" r="14" stroke="url(#heroGrad)" stroke-width="2" fill="none"/><path d="M24 14v6M24 28v6M14 24h6M28 24h6" stroke="url(#heroGrad)" stroke-width="2" stroke-linecap="round"/>',
+    scale:'<line x1="24" y1="6" x2="24" y2="38" stroke="url(#heroGrad)" stroke-width="2"/><line x1="10" y1="14" x2="38" y2="14" stroke="url(#heroGrad)" stroke-width="2"/><path d="M10 14l-6 12a6 6 0 0012 0z" stroke="url(#heroGrad)" stroke-width="1.6" fill="none"/><path d="M38 14l-6 12a6 6 0 0012 0z" stroke="url(#heroGrad)" stroke-width="1.6" fill="none"/><line x1="24" y1="38" x2="24" y2="42" stroke="url(#heroGrad)" stroke-width="2"/><line x1="16" y1="42" x2="32" y2="42" stroke="url(#heroGrad)" stroke-width="2"/>',
+    chart:'<line x1="8" y1="40" x2="40" y2="40" stroke="url(#heroGrad)" stroke-width="2"/><rect x="12" y="26" width="6" height="14" fill="url(#heroGrad)"/><rect x="21" y="18" width="6" height="22" fill="url(#heroGrad)"/><rect x="30" y="10" width="6" height="30" fill="url(#heroGrad)"/>',
+    scissors:'<circle cx="12" cy="12" r="5" stroke="url(#heroGrad)" stroke-width="2" fill="none"/><circle cx="12" cy="36" r="5" stroke="url(#heroGrad)" stroke-width="2" fill="none"/><line x1="16" y1="15" x2="40" y2="34" stroke="url(#heroGrad)" stroke-width="2"/><line x1="16" y1="33" x2="40" y2="14" stroke="url(#heroGrad)" stroke-width="2"/>',
+    leaf:'<path d="M24 4C10 10 8 26 20 40c2-10 10-16 18-20C34 12 28 6 24 4z" fill="url(#heroGrad)"/><path d="M20 40C22 28 28 20 38 20" stroke="#171a10" stroke-width="1" fill="none" opacity="0.3"/>',
+    dumbbell:'<rect x="2" y="18" width="6" height="12" rx="2" fill="url(#heroGrad)"/><rect x="40" y="18" width="6" height="12" rx="2" fill="url(#heroGrad)"/><rect x="6" y="20" width="4" height="8" rx="1" fill="url(#heroGrad)"/><rect x="38" y="20" width="4" height="8" rx="1" fill="url(#heroGrad)"/><rect x="10" y="22" width="28" height="4" fill="url(#heroGrad)"/>',
+    bag:'<path d="M10 16h28l-2 26a2 2 0 01-2 2H14a2 2 0 01-2-2z" stroke="url(#heroGrad)" stroke-width="2" fill="none"/><path d="M16 16v-2a8 8 0 0116 0v2" stroke="url(#heroGrad)" stroke-width="2" fill="none"/>',
+    house:'<path d="M6 24 L24 8 L42 24" stroke="url(#heroGrad)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="12" y="24" width="24" height="18" stroke="url(#heroGrad)" stroke-width="2" fill="none"/><rect x="20" y="30" width="8" height="12" fill="url(#heroGrad)"/>',
+    camera:'<rect x="6" y="14" width="36" height="26" rx="4" fill="none" stroke="url(#heroGrad)" stroke-width="2"/><circle cx="24" cy="27" r="8" fill="none" stroke="url(#heroGrad)" stroke-width="2"/><rect x="18" y="8" width="12" height="6" rx="2" fill="none" stroke="url(#heroGrad)" stroke-width="2"/>',
+    flower:'<circle cx="24" cy="10" r="6" fill="url(#heroGrad)"/><circle cx="36" cy="18" r="6" fill="url(#heroGrad)"/><circle cx="32" cy="32" r="6" fill="url(#heroGrad)"/><circle cx="16" cy="32" r="6" fill="url(#heroGrad)"/><circle cx="12" cy="18" r="6" fill="url(#heroGrad)"/>',
+    bread:'<ellipse cx="24" cy="28" rx="18" ry="10" fill="none" stroke="url(#heroGrad)" stroke-width="2"/><path d="M14 22 Q24 14 34 22" stroke="url(#heroGrad)" stroke-width="2" fill="none"/><line x1="18" y1="24" x2="15" y2="32" stroke="url(#heroGrad)" stroke-width="1.5"/><line x1="24" y1="22" x2="24" y2="32" stroke="url(#heroGrad)" stroke-width="1.5"/><line x1="30" y1="24" x2="33" y2="32" stroke="url(#heroGrad)" stroke-width="1.5"/>',
+    cap:'<polygon points="24,10 44,20 24,30 4,20" fill="none" stroke="url(#heroGrad)" stroke-width="2"/><line x1="24" y1="30" x2="24" y2="38" stroke="url(#heroGrad)" stroke-width="2"/><circle cx="24" cy="40" r="2" fill="url(#heroGrad)"/><line x1="38" y1="22" x2="38" y2="32" stroke="url(#heroGrad)" stroke-width="1.5"/>',
+    diamond:'<polygon points="24,4 42,24 24,44 6,24" fill="none" stroke="url(#heroGrad)" stroke-width="2"/><path d="M24 12 L24 36 M24 12 L14 24 L18 24 L18 36 M24 12 L34 24 L30 24 L30 36" stroke="url(#heroGrad)" stroke-width="1.6" fill="none" stroke-linecap="square"/>'
+  };
+
+  function slugify(str){
+    const s = (str || 'su negocio').normalize('NFD').replace(/[̀-ͯ]/g,'')
+      .toLowerCase().replace(/[^a-z0-9]/g,'');
+    return (s || 'sunegocio').slice(0,18);
+  }
+  function pickColorForInitial(letter){
+    const palette = ['#96771c','#186a5c','#5c1f3f','#26365c','#4a5561','#4c2b8a','#7a2a1a'];
+    return palette[letter.toUpperCase().charCodeAt(0) % palette.length];
+  }
+
+  // Build niche chips
+  const giroChoices = document.getElementById('giroChoices');
+  NICHES.forEach(n => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.dataset.key = n.key;
+    btn.textContent = n.label;
+    giroChoices.appendChild(btn);
+  });
+
+  let selectedGiro = null;
+
+  giroChoices.addEventListener('click', (e) => {
+    const btn = e.target.closest('.choice-btn');
+    if(!btn) return;
+    giroChoices.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedGiro = btn.dataset.key;
+  });
+
+  document.getElementById('giroSearch').addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    let visibleCount = 0;
+    giroChoices.querySelectorAll('.choice-btn').forEach(btn => {
+      const match = btn.textContent.toLowerCase().includes(q);
+      btn.classList.toggle('hidden-filter', !match);
+      if(match) visibleCount++;
+    });
+    document.getElementById('noResults').classList.toggle('show', visibleCount === 0);
+  });
+
+  const loadingSteps = ['Analizando su negocio...','Eligiendo colores y estilo...','Redactando textos...','Optimizando para móvil...','Listo.'];
+
+  document.getElementById('generarBtn').addEventListener('click', () => {
+    const nombre = document.getElementById('nombreNegocio').value.trim();
+    if(!nombre){ alert('Por favor escriba el nombre del negocio'); return; }
+    if(!selectedGiro){ alert('Por favor seleccione el giro del negocio'); return; }
+
+    document.getElementById('inputCard').style.display = 'none';
+    document.getElementById('resultWrap').classList.remove('show');
+    const loading = document.getElementById('loading');
+    loading.classList.add('show');
+
+    const bar = document.getElementById('loadingBar');
+    const stepLabel = document.getElementById('loadingStep');
+    let stepIdx = 0;
+    stepLabel.textContent = loadingSteps[0];
+    bar.style.width = '0%';
+    requestAnimationFrame(() => { bar.style.width = '100%'; });
+
+    const totalDuration = 2200;
+    const stepInterval = setInterval(() => {
+      stepIdx++;
+      if(stepIdx < loadingSteps.length) stepLabel.textContent = loadingSteps[stepIdx];
+    }, totalDuration / loadingSteps.length);
+
+    setTimeout(() => {
+      clearInterval(stepInterval);
+      loading.classList.remove('show');
+      buildSite(nombre, selectedGiro);
+    }, totalDuration + 150);
+  });
+
+  function buildSite(nombre, giroKey){
+    const theme = NICHES.find(n => n.key === giroKey);
+    const slug = slugify(nombre);
+    const initial = nombre.trim().charAt(0).toUpperCase() || 'S';
+
+    document.getElementById('urlText').textContent = 'www.' + slug + '.com.mx';
+    document.getElementById('siteBrandName').textContent = nombre;
+    document.getElementById('brandDot').textContent = initial;
+    document.getElementById('brandDot').style.background = pickColorForInitial(initial);
+    document.getElementById('navExtra').textContent = theme.navExtra;
+    document.getElementById('navCta').textContent = theme.cta.split(' ')[0];
+    document.getElementById('heroTitle').textContent = nombre;
+    document.getElementById('heroTagline').textContent = theme.tagline;
+    document.getElementById('heroCta').textContent = theme.cta;
+    document.getElementById('heroCtaSecondary').textContent = 'Ver ' + theme.navExtra.toLowerCase();
+    document.getElementById('footerName').textContent = nombre;
+    document.getElementById('galleryHeading').textContent = 'Conozca ' + (nombre.length > 18 ? 'nuestro negocio' : nombre);
+
+    const hero = document.getElementById('siteHero');
+    hero.style.background = 'linear-gradient(145deg, ' + theme.heroFrom + ' 0%, ' + theme.heroTo + ' 100%)';
+
+    // restart shimmer animation
+    const heroTitle = document.getElementById('heroTitle');
+    heroTitle.classList.remove('shimmer');
+    void heroTitle.offsetWidth;
+    heroTitle.classList.add('shimmer');
+
+    const heroIcon = document.getElementById('heroIcon');
+    heroIcon.innerHTML = '<defs><linearGradient id="heroGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f4dd8c"/><stop offset="100%" stop-color="#ffffff"/></linearGradient></defs>' + ICON_PATHS[theme.icon];
+
+    const servicesGrid = document.getElementById('servicesGrid');
+    servicesGrid.innerHTML = theme.services.map((s,i) =>
+      '<div class="service-card fade-section" style="animation-delay:' + (i*0.12) + 's">' +
+      '<div class="service-icon" style="background:linear-gradient(135deg,' + theme.heroFrom + ',' + theme.heroTo + ');color:#fff;">&#10022;</div>' +
+      '<h4>' + s.t + '</h4><p>' + s.d + '</p></div>'
+    ).join('');
+
+    const galleryGrid = document.getElementById('galleryGrid');
+    galleryGrid.innerHTML = theme.gallery.map((g,i) => {
+      const shift = i * 8;
+      return '<div class="gallery-tile fade-section" style="animation-delay:' + (i*0.08) + 's; background:linear-gradient(160deg, ' + theme.heroFrom + ', ' + theme.heroTo + ');filter:hue-rotate(' + shift + 'deg);">' +
+        '<svg viewBox="0 0 48 48" fill="none"><defs><linearGradient id="gg' + i + '" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f4dd8c"/><stop offset="100%" stop-color="#fff"/></linearGradient></defs>' +
+        ICON_PATHS[theme.icon].replace(/url\(#heroGrad\)/g, 'url(#gg' + i + ')') + '</svg>' +
+        '<span>' + g + '</span></div>';
+    }).join('');
+
+    document.getElementById('resultWrap').classList.add('show');
+    document.getElementById('siteScroll').scrollTop = 0;
+    document.getElementById('resultWrap').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+  document.getElementById('editarBtn').addEventListener('click', () => {
+    document.getElementById('resultWrap').classList.remove('show');
+    document.getElementById('inputCard').style.display = 'block';
+    document.getElementById('inputCard').scrollIntoView({ behavior:'smooth', block:'start' });
+  });
+
+  document.getElementById('btnDesktop').addEventListener('click', () => {
+    document.getElementById('browserFrame').classList.remove('mobile');
+    document.getElementById('btnDesktop').classList.add('active');
+    document.getElementById('btnMobile').classList.remove('active');
+  });
+  document.getElementById('btnMobile').addEventListener('click', () => {
+    document.getElementById('browserFrame').classList.add('mobile');
+    document.getElementById('btnMobile').classList.add('active');
+    document.getElementById('btnDesktop').classList.remove('active');
+  });
+</script>
+
+</body>
+</html>
+
+</body></html>
